@@ -1,32 +1,31 @@
-# TRY Filter function
-import csv
 import itertools as it
-from collections import Counter
+import sys
+import os
+status = None
+date = None
 
-# read through file and get counts per date
-with open('C:\GIT\Labs.Python\TransformCsv\Example.csv', 'r') as f:
-    reader = csv.reader(f)
-    header = next(reader)
-    dates = it.chain.from_iterable(
-        [date for _ in ids.split()]
-        for date, ids in ((x[0].split(':')[0], x[1]) for x in reader))
-    counts = Counter(dates)
+if os.path.exists(sys.argv[1]):
+	new_file = open(os.path.splitext(sys.argv[1])[0] + '_prepared.csv', 'w')
 
-# read through file again, and output as individual records with counts
-with open('C:\GIT\Labs.Python\TransformCsv\Example.csv', 'r') as f:
-    reader = csv.reader(f)
-    header = next(reader)
-    records = it.chain.from_iterable(
-        [(l[0], d) for d in l[1].split()] for l in reader)
-    new_lines = (l + (str(counts[l[0].split(':')[0]]), ) for l in records)
-
-    with open("test2.csv", 'w') as f_out:
-        writer = csv.writer(f_out)
-        writer.writerow(header)
-        writer.writerows(new_lines)
-
-with open("test2.csv", 'r') as new_f:
-    reader = csv.reader(new_f)
-    for line in reader:
-        print(line)
-
+	with open(sys.argv[1], mode='r', encoding='cp1252') as f:
+		for line in f.readlines():
+			if len(line.strip()) > 0:
+				if line.startswith('Status='):
+					status_line = line.split(',')[0]
+					status = status_line.split('=')[1]
+				else:
+					#Get date
+					date = line.split(',')[0]
+					#Get list with Latitudes
+					_la = line.split(',')[1::3]
+					#Get list with Longitudes
+					_lo = line.split(',')[2::3]
+					#Get list with counts
+					_c = line.split(',')[3::3]
+					if len(_la) == len(_lo) == len(_c):
+						#Aggregate elements from lists
+						for (la, lo, c) in zip(_la, _lo, _c):
+							#while lists are not empty
+							if len(la) > 0 and len(lo) > 0 and len(c) > 0:
+								new_file.write(status.strip() + "," + date.strip() + "," + la.strip() + "," + lo.strip() + "," + c.strip() +"\n")
+	new_file.close()
